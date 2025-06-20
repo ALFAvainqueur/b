@@ -3,72 +3,132 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>ChatGPT Formulaire IA</title>
+  <title>Chat IA Gratuit (OpenRouter)</title>
   <style>
     body {
+      background-color: #1c1c2b;
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      padding: 40px;
-    }
-    .chat-container {
-      max-width: 600px;
+      color: white;
+      max-width: 800px;
       margin: auto;
-      background: #fff;
       padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-    input, button {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      font-size: 16px;
+    h1 {
+      text-align: center;
+      color: #4caf50;
     }
-    #response {
-      margin-top: 20px;
-      background: #e6f7ff;
+    #chat {
+      background: #2c2c3e;
       padding: 15px;
-      border-left: 4px solid #1890ff;
+      border-radius: 10px;
+      min-height: 200px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .message {
+      margin: 10px 0;
+    }
+    .user { color: #00bfff; }
+    .bot { color: #7fff00; }
+    #inputArea {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    #prompt {
+      flex: 1;
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+    }
+    #send {
+      background: #4caf50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div class="chat-container">
-    <h2>Pose ta question à ChatGPT</h2>
-    <input type="text" id="userInput" placeholder="Ex: Quel est le sens de la vie ?">
-    <button onclick="askChatGPT()">Envoyer</button>
-    <div id="response"></div>
+
+  <h1>Chat IA Gratuit</h1>
+  <div id="chat"></div>
+  <div id="inputArea">
+    <input type="text" id="prompt" placeholder="Pose une question..." />
+    <button id="send">Envoyer</button>
   </div>
 
   <script>
-    async function askChatGPT() {
-      const userInput = document.getElementById("userInput").value;
-      const responseDiv = document.getElementById("response");
+    const chat = document.getElementById("chat");
+    const promptInput = document.getElementById("prompt");
+    const sendButton = document.getElementById("send");
 
-      responseDiv.innerHTML = "⏳ Chargement...";
+    const API_KEY = "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"; // Mets ta vraie clé ici
+    const MODEL = "mistral/mistral-7b-instruct"; // Ou un autre modèle dispo
 
-      const apiKey = "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"; // ⚠️ Ne PAS utiliser en production côté client
+    function addMessage(role, content) {
+      const div = document.createElement("div");
+      div.className = "message " + role;
+      div.textContent = (role === "user" ? "👤" : "🤖") + " " + content;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function sendPrompt() {
+      const prompt = promptInput.value.trim();
+      if (!prompt) return;
+      addMessage("user", prompt);
+      promptInput.value = "";
 
       try {
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${apiKey}`
+            "Authorization": `Bearer ${API_KEY}`,
+            "HTTP-Referer": "https://ton-site.exemple.com", // ← Mets l'URL de ton site ici
           },
           body: JSON.stringify({
-            model: "gpt-3.5-turbo",
-            messages: [{ role: "user", content: userInput }]
-          })
+            model:'gpt-3.5-turbo',
+            prompt:userinput,
+            max_tokens:150,
+            messages: [{ role: "user", content: prompt }],
+          }),
         });
 
         const data = await response.json();
-        const message = data.choices[0].message.content;
-        responseDiv.innerHTML = `<strong>Réponse :</strong><br>${message}`;
-      } catch (error) {
-        responseDiv.innerHTML = "❌ Une erreur est survenue : " + error.message;
+        const reply = data.choices?.[0]?.message?.content || "(Pas de réponse)";
+        addMessage("bot", reply);
+      } catch (err) {
+        console.error(err);
+        addMessage("bot", "[Erreur API ou réseau]");
       }
+    }
+
+    sendButton.onclick = sendPrompt;
+    promptInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") sendPrompt();
+    });
+  </script>
+</body>
+</html>
+
+    function addMessage(role, text) {
+      const d = document.createElement('div');
+      d.className = `msg ${role}`;
+      d.textContent = text;
+      chatEl.appendChild(d);
+    }
+
+    function addCitation(url) {
+      const c = document.createElement('div');
+      c.className = 'citation';
+      c.textContent = '🔗 ' + url;
+      chatEl.appendChild(c);
     }
   </script>
 </body>
 </html>
+
